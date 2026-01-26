@@ -1,0 +1,42 @@
+stages: [build, static_analysis, dep_scan, policy]
+
+variables:
+  BUILD_DIR: build
+
+build_c:
+  stage: build
+  image: gcc:13
+  script:
+    - mkdir -p $BUILD_DIR
+    - gcc -Wall -Wextra -O2 -o $BUILD_DIR/vuln_demo src/vuln_demo.c
+  artifacts:
+    paths:
+      - $BUILD_DIR/vuln_demo
+
+cppcheck:
+  stage: static_analysis
+  image: debian:stable
+  before_script:
+    - apt-get update && apt-get install -y cppcheck
+  script:
+    - cppcheck --enable=warning,style,performance,portability --force src | tee cppcheck.log
+  artifacts:
+    paths:
+      - cppcheck.log
+
+dependency_check:
+  stage: dep_scan
+  image: owasp/dependency-check:latest
+  script:
+    - mkdir -p reports
+    - dependency-check.sh --scan . --format "HTML" --out reports
+  artifacts:
+    paths:
+      - reports
+
+policy_gate:
+  stage: policy
+  image: debian:stable
+  script:
+    - grep -E "error:" cppcheck.log && echo "Cppcheck errors found" && exit 1 || echo "No cppcheck errors"
+    - grep -E "High|Critical" reports/dependency-check-report.html && echo "High/Critical CVEs found" && exit 1 || echo "No high CVEs"
