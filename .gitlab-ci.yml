@@ -56,10 +56,15 @@ unit_test_unity:
   before_script:
     - apt-get update && apt-get install -y python3
   script:
-    - mkdir -p $BUILD_DIR reports
+    - mkdir -p $BUILD_DIR reports coverage
+    # Compile Unity tests with coverage flags
     - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage -o $BUILD_DIR/test tests/test_vuln_demo.c src/demo.c unity/unity.c
+    # Run Unity tests and capture output
     - ./build/test > reports/unity_output.txt || true
+    # Convert Unity output to JUnit XML
     - python3 scripts/unity_to_junit.py reports/unity_output.txt reports/junit.xml
+    # Move coverage files into a dedicated folder
+    - mv *.gcda *.gcno coverage/ || true
   artifacts:
     when: always
     reports:
@@ -68,12 +73,12 @@ unit_test_unity:
       - $BUILD_DIR/test
       - reports/unity_output.txt
       - reports/junit.xml
-      - *.gcda
-      - *.gcno
+      - coverage/
     expire_in: 1 week
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: always
+
 
 coverage_check:
   stage: coverage
