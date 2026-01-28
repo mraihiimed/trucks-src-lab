@@ -84,7 +84,7 @@ coverage_check:
     - mkdir -p coverage
     - gcov -o $BUILD_DIR src/*.c > coverage/coverage.txt
     - COVERAGE=$(grep -Po 'Lines executed:\s*\K[0-9.]+' coverage/coverage.txt | head -1)
-    - echo "Coverage: ${COVERAGE}%"
+    #- echo "Coverage: ${COVERAGE}%"
     - if [ "$(echo "$COVERAGE < 70" | bc -l)" -eq 1 ]; then echo "Coverage below threshold"; exit 1; fi
   artifacts:
     paths:
