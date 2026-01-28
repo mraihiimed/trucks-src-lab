@@ -80,27 +80,48 @@ unit_test_unity:
       when: always
 
 
+#coverage_check:
+#  stage: coverage
+#  image: gcc:13
+#  script:
+#    - mkdir -p coverage
+#    - gcov -o $BUILD_DIR src/*.c > coverage/coverage.txt
+#    - COVERAGE=$(grep -Po 'Lines executed:\s*\K[0-9.]+' coverage/coverage.txt | head -1)
+    #- echo "Coverage detected: ${COVERAGE}%"
+#    - if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
+#        echo "Coverage below threshold ($COVERAGE_THRESHOLD%)";
+#        exit 1;
+#      else
+#        echo "Coverage meets threshold ($COVERAGE_THRESHOLD%)";
+#      fi
+#  artifacts:
+#    paths:
+#      - coverage/coverage.txt
+#    expire_in: 1 week
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "main"'
+#      when: always
 coverage_check:
   stage: coverage
   image: gcc:13
+  variables:
+    COVERAGE_THRESHOLD: "70"
   script:
     - mkdir -p coverage
     - gcov -o $BUILD_DIR src/*.c > coverage/coverage.txt
     - COVERAGE=$(grep -Po 'Lines executed:\s*\K[0-9.]+' coverage/coverage.txt | head -1)
-    #- echo "Coverage detected: ${COVERAGE}%"
-    - if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
-        echo "Coverage below threshold ($COVERAGE_THRESHOLD%)";
-        exit 1;
+    - echo "Coverage detected: ${COVERAGE}%"
+    - |
+      if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
+        echo "Coverage below threshold ($COVERAGE_THRESHOLD%)"
+        exit 1
       else
-        echo "Coverage meets threshold ($COVERAGE_THRESHOLD%)";
+        echo "Coverage meets threshold ($COVERAGE_THRESHOLD%)"
       fi
   artifacts:
     paths:
       - coverage/coverage.txt
     expire_in: 1 week
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      when: always
 
 policy_gate:
   stage: policy
