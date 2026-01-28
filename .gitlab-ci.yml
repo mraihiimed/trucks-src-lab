@@ -1,18 +1,64 @@
-stages: [build, static_analysis, dep_scan, test, coverage, policy]
+stages:
+  - build
+  - static_analysis
+  - dep_scan
+  - test
+  - coverage
+  - policy
 
 variables:
   BUILD_DIR: build
 
-unit_test:
+build_c:
+  stage: build
+  image: gcc:13
+  script:
+    - mkdir -p $BUILD_DIR
+    - gcc -Wall -Wextra -O2 -o $BUILD_DIR/vuln_demo src/vuln_demo.c
+  artifacts:
+    paths:
+      - $BUILD_DIR/vuln_demo
+    expire_in: 1 week
+
+cppcheck:
+  stage: static_analysis
+  image: debian:stable
+  before_script:
+    - apt-get update && apt-get install -y cppcheck
+  script:
+    - cppcheck --enable=warning,style,performance,portability --force src | tee cppcheck.log
+  artifacts:
+    paths:
+      - cppcheck.log
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: always
+
+dependency_check:
+  stage: dep_scan
+  image: owasp/dependency-check:latest
+  script:
+    - mkdir -p reports
+    - dependency-check.sh --scan . --format "HTML" --out reports
+  artifacts:
+    paths:
+      - reports
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: always
+
+unit_test_unity:
   stage: test
   image: gcc:13
   before_script:
     - apt-get update && apt-get install -y python3
   script:
     - mkdir -p $BUILD_DIR reports
-    # Compile Unity tests
+    # Compile Unity tests with coverage flags
     - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage -o $BUILD_DIR/test tests/test_vuln_demo.c src/demo.c unity/unity.c
-    # Run Unity tests, capture output
+    # Run Unity tests and capture output
     - ./build/test > reports/unity_output.txt || true
     # Convert Unity output to JUnit XML
     - python3 scripts/unity_to_junit.py reports/unity_output.txt reports/junit.xml
@@ -28,5 +74,42 @@ unit_test:
       - *.gcno
     expire_in: 1 week
   rules:
-    - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: always
+
+coverage_check:
+  stage: coverage
+  image: gcc:13
+  script:
+    - mkdir -p coverage
+    - gcov -o $BUILD_DIR src/*.c > coverage/coverage.txt
+    - COVERAGE=$(grep -Po 'Lines executed:\s*\K[0-9.]+' coverage/coverage.txt | head -1)
+    - echo "Coverage: $COVERAGE%"
+    - if (( $(echo "$COVERAGE < 70" | bc -l) )); then echo "Coverage below threshold"; exit 1; fi
+  artifacts:
+    paths:
+      - coverage/coverage.txt
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: always
+
+policy_gate:
+  stage: policy
+  image: debian:stable
+  script:
+    - set -e
+    # Fail if cppcheck issues exist
+    - if grep -E "error:|warning:|style:" cppcheck.log; then echo "Cppcheck issues found"; exit 1; fi
+    # Fail if dependency scan finds High/Critical CVEs
+    - if grep -E "High|Critical" reports/dependency-check-report.html; then echo "High/Critical CVEs found"; exit 1; fi
+    # Fail if Unity JUnit XML contains test failures
+    - if grep -q 'failures="0"' reports/junit.xml; then echo "Unit tests passed"; else echo "Unit test failures detected"; exit 1; fi
+    # Fail if build artifact missing
+    - if [ ! -f "$BUILD_DIR/vuln_demo" ]; then echo "Build artifact missing"; exit 1; fi
+    # Fail if coverage below threshold
+    - if grep -q "Coverage below threshold" coverage/coverage.txt; then echo "Coverage gate failed"; exit 1; fi
+    - echo "Policy gate passed"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
       when: always
