@@ -101,6 +101,7 @@ unit_test_unity:
 #  rules:
 #    - if: '$CI_COMMIT_BRANCH == "main"'
 #      when: always
+
 coverage_check:
   stage: coverage
   image: gcc:13
@@ -110,6 +111,7 @@ coverage_check:
     - mkdir -p coverage
     - gcov -o $BUILD_DIR src/*.c > coverage/coverage.txt
     - COVERAGE=$(grep -Po 'Lines executed:\s*\K[0-9.]+' coverage/coverage.txt | head -1)
+    - >
       if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
         echo "Coverage below threshold (${COVERAGE_THRESHOLD}%)"
         exit 1
@@ -124,7 +126,6 @@ coverage_check:
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: always
 
-
 policy_gate:
   stage: policy
   image: debian:stable
@@ -134,9 +135,7 @@ policy_gate:
     - if grep -E "High|Critical" reports/dependency-check-report.html; then echo "High/Critical CVEs found"; exit 1; fi
     - if grep -q 'failures="0"' reports/junit.xml; then echo "Unit tests passed"; else echo "Unit test failures detected"; exit 1; fi
     - if [ ! -f "$BUILD_DIR/vuln_demo" ]; then echo "Build artifact missing"; exit 1; fi
-    - if grep -q "Coverage below threshold" coverage/coverage.txt; then echo "Coverage gate failed"; exit 1; fi
     - echo "Policy gate passed"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: always
-      
