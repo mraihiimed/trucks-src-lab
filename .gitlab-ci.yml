@@ -87,7 +87,7 @@ coverage_check:
     - mkdir -p coverage
     - gcov -o $BUILD_DIR src/*.c > coverage/coverage.txt
     - COVERAGE=$(grep -Po 'Lines executed:\s*\K[0-9.]+' coverage/coverage.txt | head -1)
-    - echo "Coverage detected: ${COVERAGE}%"
+    #- echo "Coverage detected: ${COVERAGE}%"
     - if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
         echo "Coverage below threshold ($COVERAGE_THRESHOLD%)";
         exit 1;
