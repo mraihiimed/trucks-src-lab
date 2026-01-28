@@ -28,5 +28,5 @@ unit_test:
       - *.gcno
     expire_in: 1 week
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
       when: always
