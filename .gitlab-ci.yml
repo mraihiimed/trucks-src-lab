@@ -136,3 +136,20 @@ job_name:
       when: always
     - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
       when: always
+
+project_structure:
+  stage: docs
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache tree
+  script:
+    - tree -a -L 2 > reports/project_structure.txt
+  artifacts:
+    paths:
+      - reports/project_structure.txt
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
+      when: always
