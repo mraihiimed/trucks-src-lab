@@ -1,0 +1,9 @@
+Unity test framework started
+Running test: test_safe_copy
+Copied safely: HelloWorld
+Running test: test_safe_log
+Log: UnitTestMessage
+Running test: test_safe_memory_use
+Allocated string: HELLO
+Unity test framework finished
+All tests passed!
