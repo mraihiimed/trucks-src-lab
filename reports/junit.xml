@@ -1,2 +1,2 @@
 <?xml version='1.0' encoding='utf-8'?>
-<testsuite name="UnityTests" tests="0" failures="0" errors="0" skipped="0" />
+<testsuite name="UnityTests" tests="3" failures="0" errors="0" skipped="0"><testcase classname="Unity" name="test_safe_copy" /><testcase classname="Unity" name="test_safe_log" /><testcase classname="Unity" name="test_safe_memory_use" /></testsuite>
