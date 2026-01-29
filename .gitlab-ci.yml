@@ -60,11 +60,6 @@ dependency_check:
 
 # ---------------- UNIT TESTS ----------------
 
-stages: [build, static_analysis, dep_scan, test, coverage, policy]
-
-variables:
-  BUILD_DIR: build/tests
-
 unit_test:
   stage: test
   image: gcc:13
