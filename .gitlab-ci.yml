@@ -59,30 +59,46 @@ dependency_check:
     - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
 
 # ---------------- UNIT TESTS ----------------
-unit_test_unity:
+
+stages: [build, static_analysis, dep_scan, test, coverage, policy]
+
+variables:
+  BUILD_DIR: build/tests
+
+unit_test:
   stage: test
   image: gcc:13
   before_script:
     - apt-get update && apt-get install -y python3
   script:
-    - mkdir -p $BUILD_DIR/test/test_vuln_demo reports
+    # Prepare directories
+    - mkdir -p $BUILD_DIR/test_vuln_demo reports
+    # Compile Unity tests (note: src/vuln_demo.c, not src/demo.c)
     - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage \
         -Iunity \
-        -o $BUILD_DIR/test/test_vuln_demo/test_vuln_demo \
+        -o $BUILD_DIR/test_vuln_demo/test_vuln_demo \
         tests/test_vuln_demo.c src/vuln_demo.c unity/unity.c
-    - $BUILD_DIR/test/test_vuln_demo/test_vuln_demo > reports/unity_output.txt
+    # Run Unity tests, capture output
+    - $BUILD_DIR/test_vuln_demo/test_vuln_demo | tee reports/unity_output.txt
+    # Convert Unity output to JUnit XML
     - python3 scripts/unity_to_junit.py reports/unity_output.txt reports/junit.xml
   artifacts:
     when: always
     reports:
       junit: reports/junit.xml
     paths:
-      - $BUILD_DIR/test/test_vuln_demo/test_vuln_demo
-      - $BUILD_DIR/test/test_vuln_demo/*.gcno
-      - $BUILD_DIR/test/test_vuln_demo/*.gcda
+      - $BUILD_DIR/test_vuln_demo/test_vuln_demo
+      - $BUILD_DIR/test_vuln_demo/*.gcno
+      - $BUILD_DIR/test_vuln_demo/*.gcda
       - reports/unity_output.txt
       - reports/junit.xml
-    expire_in: 4 weeks
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
+      when: always
+
 
 # ---------------- COVERAGE ----------------
 coverage_check:
