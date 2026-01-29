@@ -1,8 +1,7 @@
 # trucks-src-lab
 
-[![pipeline status](https://gitlab.com/<namespace>/<project>/badges/main/pipeline.svg)](https://gitlab.com/<namespace>/<project>/-/pipelines)
-[![coverage report](https://gitlab.com/<namespace>/<project>/badges/main/coverage.svg)](https://gitlab.com/<namespace>/<project>/-/commits/main)
-
+[![pipeline status](https://gitlab.com/mraihi.imed/trucks-src-lab/badges/main/pipeline.svg)](https://gitlab.com/mraihi.imed/trucks-src-lab/-/pipelines)
+[![coverage report](https://gitlab.com/mraihi.imed/trucks-src-lab/badges/main/coverage.svg)](https://gitlab.com/mraihi.imed/trucks-src-lab/-/commits/main)
 
 A reproducible lab environment for experimenting with **embedded systems security**, **CI/CD pipelines**, and **automotive protocol validation**.  
 This project demonstrates safe coding practices, vulnerability detection, and automated testing using Unity, cppcheck, OWASP Dependency Check, and GitLab CI/CD.
