@@ -67,8 +67,11 @@ unit_test_unity:
     - apt-get update && apt-get install -y python3
   script:
     - mkdir -p $BUILD_DIR reports coverage
-    - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage -o $BUILD_DIR/test tests/test_vuln_demo.c src/demo.c unity/unity.c
-    - ./build/test > reports/unity_output.txt || true
+    - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage \
+        -Iunity \
+        -o $BUILD_DIR/test_vuln_demo \
+        tests/test_vuln_demo.c src/vuln_demo.c unity/unity.c
+    - ./build/test_vuln_demo > reports/unity_output.txt
     - python3 scripts/unity_to_junit.py reports/unity_output.txt reports/junit.xml
     - mv *.gcda *.gcno coverage/ || true
   artifacts:
@@ -76,16 +79,11 @@ unit_test_unity:
     reports:
       junit: reports/junit.xml
     paths:
-      - $BUILD_DIR/test
+      - $BUILD_DIR/test_vuln_demo
       - reports/unity_output.txt
       - reports/junit.xml
       - coverage/
-    expire_in: 1 week
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      when: always
-    - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
-      when: always
+    expire_in: 4 week
 
 coverage_check:
   stage: coverage

@@ -31,7 +31,7 @@ void safe_memory_use() {
     free(p); // freed once, no double free
 }
 
-int main(int argc, char **argv) {
+/*int main(int argc, char **argv) {
     const char *input = (argc > 1) ? argv[1] : "DefaultString";
 
     safe_copy(input);
@@ -39,5 +39,5 @@ int main(int argc, char **argv) {
     safe_memory_use();
 
     return 0;
-}
+}*/
 
