@@ -67,14 +67,11 @@ unit_test:
     - apt-get update && apt-get install -y python3
   script:
     # Prepare directories
-    - mkdir -p $BUILD_DIR/test_vuln_demo reports
+    - mkdir -p build/tests/test_vuln_demo reports
     # Compile Unity tests (note: src/vuln_demo.c, not src/demo.c)
-    - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage \
-        -Iunity \
-        -o $BUILD_DIR/test_vuln_demo/test_vuln_demo \
-        tests/test_vuln_demo.c src/vuln_demo.c unity/unity.c
+    - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage   -Iunity     -o build/test_vuln_demo tests/test_vuln_demo.c src/vuln_demo.c unity/unity.c
     # Run Unity tests, capture output
-    - $BUILD_DIR/test_vuln_demo/test_vuln_demo | tee reports/unity_output.txt
+    - build/tests/test_vuln_demo/test_vuln_demo | tee reports/unity_output.txt
     # Convert Unity output to JUnit XML
     - python3 scripts/unity_to_junit.py reports/unity_output.txt reports/junit.xml
   artifacts:
@@ -82,9 +79,9 @@ unit_test:
     reports:
       junit: reports/junit.xml
     paths:
-      - $BUILD_DIR/test_vuln_demo/test_vuln_demo
-      - $BUILD_DIR/test_vuln_demo/*.gcno
-      - $BUILD_DIR/test_vuln_demo/*.gcda
+      - build/tests/test_vuln_demo/test_vuln_demo
+      - build/tests/test_vuln_demo/*.gcno
+      - build/test/test_vuln_demo/*.gcda
       - reports/unity_output.txt
       - reports/junit.xml
     expire_in: 1 week
