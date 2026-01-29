@@ -68,9 +68,11 @@ unit_test:
   script:
     # Prepare directories
     - mkdir -p build/tests/test_vuln_demo reports
-    # Compile Unity tests (note: src/vuln_demo.c, not src/demo.c)
-    - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage     -Iunity     -o build/test_vuln_demo tests/test_vuln_demo.c src/vuln_demo.c unity/unity.c
-
+    # Compile Unity tests
+    - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage \
+        -Iunity \
+        -o build/tests/test_vuln_demo/test_vuln_demo \
+        tests/test_vuln_demo.c src/vuln_demo.c unity/unity.c
     # Run Unity tests, capture output
     - build/tests/test_vuln_demo/test_vuln_demo | tee reports/unity_output.txt
     # Convert Unity output to JUnit XML
@@ -82,7 +84,7 @@ unit_test:
     paths:
       - build/tests/test_vuln_demo/test_vuln_demo
       - build/tests/test_vuln_demo/*.gcno
-      - build/test/test_vuln_demo/*.gcda
+      - build/tests/test_vuln_demo/*.gcda
       - reports/unity_output.txt
       - reports/junit.xml
     expire_in: 1 week
@@ -92,8 +94,6 @@ unit_test:
     - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
       when: always
 
-
-# ---------------- COVERAGE ----------------
 coverage_check:
   stage: coverage
   image: debian:stable
@@ -101,7 +101,7 @@ coverage_check:
     - apt-get update && apt-get install -y bc gcov
   script:
     - mkdir -p coverage
-    - gcov -o $BUILD_DIR/test/test_vuln_demo src/*.c > coverage/coverage.txt
+    - gcov -o build/tests/test_vuln_demo src/*.c > coverage/coverage.txt
     - COVERAGE=$(grep -Po 'Lines executed:\s*\K[0-9.]+' coverage/coverage.txt | head -1)
     - >
       if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
@@ -113,12 +113,15 @@ coverage_check:
   artifacts:
     paths:
       - coverage/coverage.txt
-      - $BUILD_DIR/test/test_vuln_demo/*.gcno
-      - $BUILD_DIR/test/test_vuln_demo/*.gcda
+      - build/tests/test_vuln_demo/*.gcno
+      - build/tests/test_vuln_demo/*.gcda
     expire_in: 1 week
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
+
+
+# ---------------- COVERAGE ----------------
 # ---------------- Runner check ----------------
 sanity_check:
   stage: build
