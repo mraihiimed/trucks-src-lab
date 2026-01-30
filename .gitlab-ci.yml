@@ -69,10 +69,7 @@ unit_test:
     # Prepare directories
     - mkdir -p build/tests/test_vuln_demo reports
     # Compile Unity tests
-    - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage \
-        -Iunity \
-        -o build/tests/test_vuln_demo/test_vuln_demo \
-        tests/test_vuln_demo.c src/vuln_demo.c unity/unity.c
+    - gcc -Wall -Wextra -fprofile-arcs -ftest-coverage -Iunity -o build/tests/test_vuln_demo/test_vuln_demo tests/test_vuln_demo.c src/vuln_demo.c unity/unity.c
     # Run Unity tests, capture output
     - build/tests/test_vuln_demo/test_vuln_demo | tee reports/unity_output.txt
     # Convert Unity output to JUnit XML
