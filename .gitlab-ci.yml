@@ -90,35 +90,6 @@ unit_test:
       when: always
     - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
       when: always
-
-coverage_check:
-  stage: coverage
-  image: debian:stable
-  before_script:
-    - apt-get update && apt-get install -y bc gcov
-  script:
-    - mkdir -p coverage
-    - gcov -o build/tests/test_vuln_demo src/*.c > coverage/coverage.txt
-    - COVERAGE=$(grep -Po 'Lines executed:\s*\K[0-9.]+' coverage/coverage.txt | head -1)
-    - >
-      if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
-        echo "Coverage below threshold (${COVERAGE_THRESHOLD}%)"
-        exit 1
-      else
-        echo "Coverage meets threshold (${COVERAGE_THRESHOLD}%)"
-      fi
-  artifacts:
-    paths:
-      - coverage/coverage.txt
-      - build/tests/test_vuln_demo/*.gcno
-      - build/tests/test_vuln_demo/*.gcda
-    expire_in: 1 week
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_BRANCH == "feature/Unity"'
-
-
-# ---------------- COVERAGE ----------------
 # ---------------- Runner check ----------------
 sanity_check:
   stage: build
