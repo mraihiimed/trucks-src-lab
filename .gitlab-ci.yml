@@ -3,7 +3,7 @@ stages:
   - static_analysis
   - dep_scan
   - test
-  - coverage
+  - sanity_check
   - policy
   - shared_test
   - docs
